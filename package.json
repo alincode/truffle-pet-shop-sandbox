@@ -8,12 +8,14 @@
   },
   "scripts": {
     "dev": "lite-server",
-    "deploy": "node build.js",
+    "build": "node build.js",
+    "deploy": "gh-pages -d dist",
     "test": "truffle test"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "gh-pages": "^2.0.1",
     "lite-server": "^2.3.0",
     "recursive-copy": "^2.0.9"
   },
