@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "lite-server",
-    "build": "node build.js",
+    "build": "rm -rf dist && node build.js",
     "deploy": "gh-pages -d dist",
     "test": "truffle test"
   },

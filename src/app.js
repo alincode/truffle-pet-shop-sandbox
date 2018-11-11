@@ -3,29 +3,47 @@ App = {
   contracts: {},
 
   init: async function () {
-    // Load pets.
-    $.getJSON('../pets.json', function (data) {
-      var petsRow = $('#petsRow');
-      var petTemplate = $('#petTemplate');
 
-      for (i = 0; i < data.length; i++) {
-        petTemplate.find('.panel-title').text(data[i].name);
-        petTemplate.find('img').attr('src', data[i].picture);
-        petTemplate.find('.pet-breed').text(data[i].breed);
-        petTemplate.find('.pet-age').text(data[i].age);
-        petTemplate.find('.pet-location').text(data[i].location);
-        petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
+    fetch('pets.json')
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
+        var petsRow = $('#petsRow');
+        var petTemplate = $('#petTemplate');
 
-        petsRow.append(petTemplate.html());
-      }
-    });
+        for (i = 0; i < data.length; i++) {
+          petTemplate.find('.panel-title').text(data[i].name);
+          petTemplate.find('img').attr('src', data[i].picture);
+          petTemplate.find('.pet-breed').text(data[i].breed);
+          petTemplate.find('.pet-age').text(data[i].age);
+          petTemplate.find('.pet-location').text(data[i].location);
+          petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
+
+          petsRow.append(petTemplate.html());
+        }
+      });
 
     return await App.initWeb3();
   },
 
   // Step 1：實作初始化 web3
   initWeb3: async function () {
-    App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
+    if (ethereum) {
+      web3 = new Web3(ethereum);
+      try {
+        //  https://bit.ly/2QQHXvF
+        console.log('ethereum.enable()');
+        const accounts = await ethereum.enable();
+        web3.eth.defaultAccount = accounts[0];
+      } catch (error) {}
+    } else if (web3) {
+      console.log('load web3.currentProvider');
+      web3 = new Web3(web3.currentProvider);
+    } else {
+      console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+    }
+    App.web3Provider = web3.currentProvider
     web3 = new Web3(App.web3Provider);
     return App.initContract();
   },
@@ -33,15 +51,19 @@ App = {
   // Step 2：實例化智能合約
   initContract: function () {
 
-    $.getJSON('Adoption.json', function (data) {
-      // data 是符合 truffle contractschema 格式的 JSON 檔案
-      var AdoptionArtifact = data;
-      App.contracts.Adoption = TruffleContract(AdoptionArtifact);
-      // 設定合約的 provider
-      App.contracts.Adoption.setProvider(App.web3Provider);
-      // 執行 App.markAdopted() 函示
-      return App.markAdopted();
-    });
+    fetch('Adoption.json')
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
+        // data 是符合 truffle contractschema 格式的 JSON 檔案
+        var AdoptionArtifact = data;
+        App.contracts.Adoption = TruffleContract(AdoptionArtifact);
+        // 設定合約的 provider
+        App.contracts.Adoption.setProvider(App.web3Provider);
+        // 執行 App.markAdopted() 函示
+        return App.markAdopted();
+      });
 
     return App.bindEvents();
   },
@@ -96,8 +118,6 @@ App = {
 
 };
 
-$(function () {
-  $(window).load(function () {
-    App.init();
-  });
-});
+window.onload = function () {
+  App.init();
+}
